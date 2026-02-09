@@ -15,10 +15,16 @@ import { useGuardians } from "../../../../core/hooks/useGuardians";
 
 const GuardianGrid = () => {
   const [show, setShow] = useState(false);
-  const [selectedGuardian, setSelectedGuardian] = useState(null);
+  const [selectedGuardian, setSelectedGuardian] = useState<any>(null);
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const { guardians: data, loading, error, refetch } = useGuardians();
+  const { guardians, loading, error, refetch } = useGuardians();
+
+  // useGuardians already returns transformed guardian objects in the exact
+  // shape expected by this grid and the View Details modal.
+  // Re-mapping here would lose data (because raw API fields are no longer present),
+  // so we just pass the hook data through.
+  const data = guardians ?? [];
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {

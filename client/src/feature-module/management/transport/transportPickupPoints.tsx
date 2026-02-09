@@ -11,12 +11,13 @@ import type { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
 import TransportModal from "./transportModal";
-import { transportPickup } from "../../../core/data/json/transport_pickup";
+import { useTransportPickupPoints } from "../../../core/hooks/useTransportPickupPoints";
 
 const TransportPickupPoints = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = transportPickup;
+  const { data: apiData, loading, fallbackData } = useTransportPickupPoints();
+  const data = apiData?.length ? apiData : fallbackData;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -31,7 +32,7 @@ const TransportPickupPoints = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
+      sorter: (a: TableData, b: TableData) => String(a.id).length - String(b.id).length,
     },
     {
       title: "Pickup Point",
@@ -255,8 +256,15 @@ const TransportPickupPoints = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
+              {loading && (
+                <div className="text-center py-4">
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Loading pickup points...
+                </div>
+              )}
+              {!loading && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
               {/* /Student List */}
             </div>
           </div>

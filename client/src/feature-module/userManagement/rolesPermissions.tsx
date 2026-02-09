@@ -1,15 +1,16 @@
 
-import { rolesPermissionsData } from "../../core/data/json/rolesPermissions";
 import Table from "../../core/common/dataTable/index";
 import type { TableData } from "../../core/data/interface";
 import PredefinedDateRanges from "../../core/common/datePicker";
 import { Link } from "react-router-dom";
 import { all_routes } from "../router/all_routes";
 import TooltipOption from "../../core/common/tooltipOption";
+import { useUserRoles } from "../../core/hooks/useUserRoles";
 
 const RolesPermissions = () => {
-  const routes = all_routes
-  const data = rolesPermissionsData;
+  const routes = all_routes;
+  const { userRoles, loading, error, refetch } = useUserRoles();
+  const data = userRoles;
   const columns = [
     {
       title: "Role Name",
@@ -140,8 +141,36 @@ const RolesPermissions = () => {
                 </div>
               </div>
               <div className="card-body p-0 py-3">
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center p-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading roles & permissions data...</p>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {error && (
+                  <div className="text-center p-4">
+                    <div className="alert alert-danger" role="alert">
+                      <i className="ti ti-alert-circle me-2"></i>
+                      {error}
+                      <button
+                        className="btn btn-sm btn-outline-danger ms-3"
+                        onClick={refetch}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Role Permission List */}
-                <Table columns={columns} dataSource={data} Selection={true} />
+                {!loading && !error && (
+                  <Table columns={columns} dataSource={data} Selection={true} />
+                )}
                 {/* /Role Permission List */}
               </div>
             </div>

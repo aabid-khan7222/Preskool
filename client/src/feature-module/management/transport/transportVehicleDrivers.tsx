@@ -12,13 +12,14 @@ import type { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
 import TransportModal from "./transportModal";
-import { transportdriver } from "../../../core/data/json/transport_driver";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import { useTransportDrivers } from "../../../core/hooks/useTransportDrivers";
 
 const TransportVehicleDrivers = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = transportdriver;
+  const { data: apiData, loading, fallbackData } = useTransportDrivers();
+  const data = apiData?.length ? apiData : fallbackData;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -54,7 +55,7 @@ const TransportVehicleDrivers = () => {
           </div>
         </div>
       ),
-      sorter: (a: TableData, b: TableData) => a.name.length - b.name.length,
+      sorter: (a: TableData, b: TableData) => (String(a.name || '').length - String(b.name || '').length),
     },
     {
       title: "Phone Number",
@@ -288,9 +289,15 @@ const TransportVehicleDrivers = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
+              {loading && (
+                <div className="text-center py-4">
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Loading drivers...
+                </div>
+              )}
+              {!loading && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
             </div>
           </div>
           {/* /Students List */}

@@ -14,16 +14,21 @@ import { Modal } from "react-bootstrap";
 import GuardianModal from "../guardianModal";
 import type { TableData } from "../../../../core/data/interface";
 import Table from "../../../../core/common/dataTable/index";
-import { guardianListData } from "../../../../core/data/json/guardianList";
 import TooltipOption from "../../../../core/common/tooltipOption";
 import { useGuardians } from "../../../../core/hooks/useGuardians";
 
 const GuardianList = () => {
   const [show, setShow] = useState(false);
-  const [selectedGuardian, setSelectedGuardian] = useState(null);
+  const [selectedGuardian, setSelectedGuardian] = useState<any>(null);
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const { guardians: data, loading, error, refetch } = useGuardians();
+  const { guardians, loading, error, refetch } = useGuardians();
+
+  // useGuardians already returns guardian records transformed into the
+  // exact shape expected by this table and the View Details modal.
+  // Re-transforming here against raw API field names causes the "N/A"
+  // issue, so we simply use the hook result as-is.
+  const data = guardians ?? [];
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
@@ -113,7 +118,7 @@ const GuardianList = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_text: string, record: any) => (
         <>
           <div className="d-flex align-items-center">
             <div className="dropdown">

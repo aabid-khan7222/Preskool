@@ -9,17 +9,18 @@ import {
 } from "../../../../core/common/selectoption/selectoption";
 import Table from "../../../../core/common/dataTable/index";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
-import { staff } from "../../../../core/data/json/staff";
 import type { TableData } from "../../../../core/data/interface";
 import PredefinedDateRanges from "../../../../core/common/datePicker";
 import CommonSelect from "../../../../core/common/commonSelect";
 import { all_routes } from "../../../router/all_routes";
 import TooltipOption from "../../../../core/common/tooltipOption";
+import { useStaff } from "../../../../core/hooks/useStaff";
 
 const Staff = () => {
-  const data = staff;
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
+  const { staffList, loading, error, refetch } = useStaff();
+  const data = staffList;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -287,8 +288,36 @@ const Staff = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
+              {/* Loading State */}
+              {loading && (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading staff data...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="text-center p-4">
+                  <div className="alert alert-danger" role="alert">
+                    <i className="ti ti-alert-circle me-2"></i>
+                    {error}
+                    <button
+                      className="btn btn-sm btn-outline-danger ms-3"
+                      onClick={refetch}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Staffs List */}
-              <Table columns={columns} dataSource={data} Selection={true} />
+              {!loading && !error && (
+                <Table columns={columns} dataSource={data} Selection={true} />
+              )}
               {/* /Staffs List */}
             </div>
           </div>

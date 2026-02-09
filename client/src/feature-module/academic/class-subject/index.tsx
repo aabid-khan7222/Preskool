@@ -1,5 +1,4 @@
 import  { useRef } from "react";
-import { classSubject } from "../../../core/data/json/class-subject";
 import Table from "../../../core/common/dataTable/index";
 
 import {
@@ -14,11 +13,21 @@ import type { TableData } from "../../../core/data/interface";
 import { Link } from "react-router-dom";
 import TooltipOption from "../../../core/common/tooltipOption";
 import { all_routes } from "../../router/all_routes";
+import { useSubjects } from "../../../core/hooks/useSubjects";
 
 const ClassSubject = () => {
   const routes = all_routes;
+  const { subjects, loading, error, refetch } = useSubjects();
 
-  const data = classSubject;
+  // Transform API data to match table structure
+  const data = (subjects ?? []).map((subject: any, index: number) => ({
+    key: (index + 1).toString(),
+    id: subject.subject_code || `SU${subject.id}`,
+    name: subject.subject_name || 'N/A',
+    code: subject.subject_code || 'N/A',
+    type: (subject.practical_hours && subject.practical_hours > 0) ? 'Practical' : 'Theory',
+    status: subject.is_active ? 'Active' : 'Inactive'
+  }));
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
@@ -271,10 +280,38 @@ const ClassSubject = () => {
                 </div>
               </div>
               <div className="card-body p-0 py-3">
-                {/* Guardians List */}
-                <Table columns={columns} dataSource={data} Selection={true} />
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center p-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading subjects data...</p>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {error && (
+                  <div className="text-center p-4">
+                    <div className="alert alert-danger" role="alert">
+                      <i className="ti ti-alert-circle me-2"></i>
+                      {error}
+                      <button 
+                        className="btn btn-sm btn-outline-danger ms-3" 
+                        onClick={refetch}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Subjects List */}
+                {!loading && !error && (
+                  <Table columns={columns} dataSource={data} Selection={true} />
+                )}
                 
-                {/* /Guardians List */}
+                {/* /Subjects List */}
               </div>
             </div>
             {/* /Guardians List */}

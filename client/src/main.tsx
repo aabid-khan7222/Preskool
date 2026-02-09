@@ -1,4 +1,3 @@
-
 import { createRoot } from 'react-dom/client'
 import { base_path } from "./environment";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";

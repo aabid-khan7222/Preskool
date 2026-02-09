@@ -4,37 +4,58 @@ import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import Table from "../../../../core/common/dataTable/index";
 import type { TableData } from "../../../../core/data/interface";
-import { Studentlist } from '../../../../core/data/json/studentList';
 import CommonSelect from '../../../../core/common/commonSelect';
-import { promotion,allClass,allSection } from '../../../../core/common/selectoption/selectoption';
+import { promotion, allClass, allSection } from '../../../../core/common/selectoption/selectoption';
 import PredefinedDateRanges from '../../../../core/common/datePicker';
 import TooltipOption from '../../../../core/common/tooltipOption';
 import { useAcademicYears } from '../../../../core/hooks/useAcademicYears';
 import { useClasses } from '../../../../core/hooks/useClasses';
 import { useSections } from '../../../../core/hooks/useSections';
+import { useStudents } from '../../../../core/hooks/useStudents';
 
 const StudentPromotion = () => {
     const [isPromotion, setIsPromotion] = useState<boolean>(false);
     const routes = all_routes;
-    const data = Studentlist;
-    
+
+    // Fetch students from API
+    const { students, loading: studentsLoading, error: studentsError } = useStudents();
+
+    // Map API students to table structure (exam result not in API - show N/A)
+    const data = students.map((student: any) => ({
+      key: student.admission_number || String(student.id),
+      studentId: student.id,
+      student,
+      AdmissionNo: student.admission_number ?? '',
+      RollNo: student.roll_number ?? '',
+      name: [student.first_name, student.last_name].filter(Boolean).join(' ') || 'N/A',
+      class: student.class_name ?? 'N/A',
+      section: student.section_name ?? 'N/A',
+      result: 'N/A',
+      imgSrc: student.photo_url || 'assets/img/students/student-01.jpg',
+      promotion: 0,
+    }));
+
     // Fetch academic years from API
     const { academicYears, loading: academicYearsLoading, error: academicYearsError } = useAcademicYears();
-    
+
     // Fetch classes from API
     const { classes, loading: classesLoading, error: classesError } = useClasses();
-    
+
     // Fetch sections from API
     const { sections, loading: sectionsLoading, error: sectionsError } = useSections();
     const columns = [
         {
           title: "Admission No",
           dataIndex: "AdmissionNo",
-          render: (text: string) => (
-              <Link to={routes.studentDetail}className="link-primary">
+          render: (text: string, record: any) => (
+            <Link
+              to={routes.studentDetail}
+              state={{ studentId: record.studentId, student: record.student }}
+              className="link-primary"
+            >
               {text}
             </Link>
-            ),
+          ),
           sorter: (a: TableData, b: TableData) =>
             a.AdmissionNo.length - b.AdmissionNo.length,
         },
@@ -48,21 +69,30 @@ const StudentPromotion = () => {
           title: "Name",
           dataIndex: "name",
           render: (text: string, record: any) => (
-              <div className="d-flex align-items-center">
-                <Link to="#" className="avatar avatar-md">
-                  <ImageWithBasePath
-                    src={record.imgSrc}
-                    className="img-fluid rounded-circle"
-                    alt="img"
-                  />
-                </Link>
-                <div className="ms-2">
-                  <p className="text-dark mb-0">
-                    <Link to="#">{text}</Link>
-                  </p>
-                </div>
+            <div className="d-flex align-items-center">
+              <Link
+                to={routes.studentDetail}
+                state={{ studentId: record.studentId, student: record.student }}
+                className="avatar avatar-md"
+              >
+                <ImageWithBasePath
+                  src={record.imgSrc}
+                  className="img-fluid rounded-circle"
+                  alt="img"
+                />
+              </Link>
+              <div className="ms-2">
+                <p className="text-dark mb-0">
+                  <Link
+                    to={routes.studentDetail}
+                    state={{ studentId: record.studentId, student: record.student }}
+                  >
+                    {text}
+                  </Link>
+                </p>
               </div>
-            ),
+            </div>
+          ),
           sorter: (a: TableData, b: TableData) =>
             a.name.length - b.name.length,
         },
@@ -472,7 +502,22 @@ const StudentPromotion = () => {
             </div>
             <div className="card-body p-0 py-3">
               {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
+              {studentsLoading && (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading students...</p>
+                </div>
+              )}
+              {studentsError && (
+                <div className="text-center p-4">
+                  <div className="alert alert-danger mb-0">{studentsError}</div>
+                </div>
+              )}
+              {!studentsLoading && !studentsError && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
               {/* /Student List */}
             </div>
           </div>

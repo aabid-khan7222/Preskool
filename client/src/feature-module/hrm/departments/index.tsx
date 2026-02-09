@@ -3,14 +3,15 @@ import { Link } from 'react-router-dom'
 import Table from "../../../core/common/dataTable/index";
 import { activeList, departmentSelect } from '../../../core/common/selectoption/selectoption';
 import type { TableData } from '../../../core/data/interface';
-import { departments } from '../../../core/data/json/departments';
 import PredefinedDateRanges from '../../../core/common/datePicker';
 import CommonSelect from '../../../core/common/commonSelect';
 import { all_routes } from '../../router/all_routes';
 import TooltipOption from '../../../core/common/tooltipOption';
+import { useDepartments } from '../../../core/hooks/useDepartments';
 
 const Departments = () => {
   const routes = all_routes;
+  const { departments, loading, error, refetch } = useDepartments();
   const data = departments;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const handleApplyClick = () => {
@@ -255,8 +256,36 @@ const Departments = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
+              {/* Loading State */}
+              {loading && (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading departments data...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="text-center p-4">
+                  <div className="alert alert-danger" role="alert">
+                    <i className="ti ti-alert-circle me-2"></i>
+                    {error}
+                    <button
+                      className="btn btn-sm btn-outline-danger ms-3"
+                      onClick={refetch}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Student List */}
+              {!loading && !error && (
                 <Table columns={columns} dataSource={data} Selection={true} />
+              )}
               {/* /Student List */}
             </div>
           </div>

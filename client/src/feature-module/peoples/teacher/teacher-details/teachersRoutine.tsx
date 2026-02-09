@@ -1,12 +1,99 @@
 
 import TeacherModal from "../teacherModal";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { all_routes } from "../../../router/all_routes";
 import TeacherSidebar from "./teacherSidebar";
 import TeacherBreadcrumb from "./teacherBreadcrumb";
+import { apiService } from "../../../../core/services/apiService";
+
+interface TeacherDetailsLocationState {
+  teacherId?: number;
+  teacher?: any;
+}
 
 const TeachersRoutine = () => {
   const routes = all_routes;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as TeacherDetailsLocationState | null;
+  const teacherId = state?.teacherId ?? state?.teacher?.id;
+  const [teacher, setTeacher] = useState<any>(state?.teacher ?? null);
+  const [loading, setLoading] = useState(!!teacherId);
+
+  // Redirect to Teacher List if no teacherId is provided (e.g., clicked from sidebar)
+  // MUST be before any early returns to follow Rules of Hooks
+  useEffect(() => {
+    if (!teacherId && !loading) {
+      navigate(routes.teacherList, { replace: true });
+    }
+  }, [teacherId, loading, navigate, routes.teacherList]);
+
+  // Always fetch full teacher by ID when teacherId is available to ensure we have complete data
+  // This works whether coming from grid (partial teacher) or list (full teacher)
+  useEffect(() => {
+    if (teacherId) {
+      setLoading(true);
+      apiService
+        .getTeacherById(teacherId)
+        .then((res: any) => {
+          if (res?.data) setTeacher(res.data);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [teacherId]);
+
+  if (loading) {
+    return (
+      <>
+        {/* Page Wrapper */}
+        <div className="page-wrapper">
+          <div className="content">
+            <div className="row">
+              <TeacherBreadcrumb />
+              <div className="col-12">
+                <div className="d-flex justify-content-center align-items-center p-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <span className="ms-2">Loading teacher...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* /Page Wrapper */}
+        <TeacherModal />
+      </>
+    );
+  }
+
+  if (!teacher && !teacherId) {
+    return (
+      <>
+        {/* Page Wrapper */}
+        <div className="page-wrapper">
+          <div className="content">
+            <div className="row">
+              <TeacherBreadcrumb />
+              <div className="col-12">
+                <div className="d-flex justify-content-center align-items-center p-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <span className="ms-2">Redirecting to Teacher List...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* /Page Wrapper */}
+        <TeacherModal />
+      </>
+    );
+  }
+
   return (
     <>
       {/* Page Wrapper */}
@@ -16,9 +103,9 @@ const TeachersRoutine = () => {
             {/* Page Header */}
             <TeacherBreadcrumb />
             {/* /Page Header */}
-            {/* Student Information */}
-            <TeacherSidebar />
-            {/* /Student Information */}
+            {/* Teacher Information */}
+            <TeacherSidebar teacher={teacher} />
+            {/* /Teacher Information */}
             <div className="col-xxl-9 col-xl-8">
               <div className="row">
                 <div className="col-md-12">

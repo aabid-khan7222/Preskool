@@ -24,6 +24,16 @@ const parentRoutes = require('./src/routes/parentRoutes');
 const guardianRoutes = require('./src/routes/guardianRoutes');
 const houseRoutes = require('./src/routes/houseRoutes');
 const addressRoutes = require('./src/routes/addressRoutes');
+const transportRoutes = require('./src/routes/transportRoutes');
+const classScheduleRoutes = require('./src/routes/classScheduleRoutes');
+const hostelRoutes = require('./src/routes/hostelRoutes');
+const hostelRoomRoutes = require('./src/routes/hostelRoomRoutes');
+const roomTypeRoutes = require('./src/routes/roomTypeRoutes');
+const staffRoutes = require('./src/routes/staffRoutes');
+const departmentRoutes = require('./src/routes/departmentRoutes');
+const designationRoutes = require('./src/routes/designationRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const userRoleRoutes = require('./src/routes/userRoleRoutes');
 
 // Create Express app
 const app = express();
@@ -54,6 +64,16 @@ app.use('/api/parents', parentRoutes);
 app.use('/api/guardians', guardianRoutes);
 app.use('/api/houses', houseRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/transport', transportRoutes);
+app.use('/api/class-schedules', classScheduleRoutes);
+app.use('/api/hostels', hostelRoutes);
+app.use('/api/hostel-rooms', hostelRoomRoutes);
+app.use('/api/room-types', roomTypeRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/designations', designationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/user-roles', userRoleRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

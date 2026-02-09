@@ -10,13 +10,14 @@ import {
 import type { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
-import { transportRouteList } from "../../../core/data/json/transport_route";
 import TransportModal from "./transportModal";
+import { useTransportRoutes } from "../../../core/hooks/useTransportRoutes";
 
 const TransportRoutes = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = transportRouteList;
+  const { data: apiData, loading, error, fallbackData } = useTransportRoutes();
+  const data = apiData?.length ? apiData : fallbackData;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -31,7 +32,7 @@ const TransportRoutes = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
+      sorter: (a: TableData, b: TableData) => String(a.id).length - String(b.id).length,
     },
     {
       title: "Routes",
@@ -255,8 +256,20 @@ const TransportRoutes = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
+              {error && (
+                <div className="alert alert-warning mx-3 mt-3 mb-0" role="alert">
+                  Could not load routes from server. Showing sample data. Check that the server is running on port 5000.
+                </div>
+              )}
+              {loading && (
+                <div className="text-center py-4">
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Loading routes...
+                </div>
+              )}
+              {!loading && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
               {/* /Student List */}
             </div>
           </div>

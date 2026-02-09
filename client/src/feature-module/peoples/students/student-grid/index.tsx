@@ -16,7 +16,7 @@ const StudentGrid = () => {
     // Fetch students from API
     const { students, loading, error } = useStudents();
 
-    // Transform data to match the expected structure
+    // Transform data to match the expected structure; keep full student for detail page state
     const transformedData = students.map((student: any) => ({
         id: student.id,
         admission_number: student.admission_number,
@@ -31,7 +31,8 @@ const StudentGrid = () => {
         class_name: student.class_name,
         section_name: student.section_name,
         class_section: `${student.class_name || 'N/A'}, ${student.section_name || 'N/A'}`,
-        status: student.is_active ? 'Active' : 'Inactive'
+        status: student.is_active ? 'Active' : 'Inactive',
+        student, // full student for navigation state to detail page
     }));
 
     const handleApplyClick = () => {
@@ -250,7 +251,11 @@ const StudentGrid = () => {
             <div key={student.id} className="col-xxl-3 col-xl-4 col-md-6 d-flex">
               <div className="card flex-fill">
                 <div className="card-header d-flex align-items-center justify-content-between">
-                  <Link to={routes.studentDetail} className="link-primary">
+                  <Link
+                    to={routes.studentDetail}
+                    state={{ studentId: student.id, student: student.student }}
+                    className="link-primary"
+                  >
                     {student.admission_number}
                   </Link>
                   <div className="d-flex align-items-center">
@@ -272,6 +277,7 @@ const StudentGrid = () => {
                           <Link
                             className="dropdown-item rounded-1"
                             to={routes.studentDetail}
+                            state={{ studentId: student.id, student: student.student }}
                           >
                             <i className="ti ti-menu me-2" />
                             View Student
@@ -315,6 +321,7 @@ const StudentGrid = () => {
                     <div className="d-flex align-items-center">
                       <Link
                         to={routes.studentDetail}
+                        state={{ studentId: student.id, student: student.student }}
                         className="avatar avatar-lg flex-shrink-0"
                       >
                         <ImageWithBasePath
@@ -326,7 +333,12 @@ const StudentGrid = () => {
                       </Link>
                       <div className="ms-2">
                         <h5 className="mb-0">
-                          <Link to={routes.studentDetail}>{student.full_name}</Link>
+                          <Link
+                            to={routes.studentDetail}
+                            state={{ studentId: student.id, student: student.student }}
+                          >
+                            {student.full_name}
+                          </Link>
                         </h5>
                         <p>{student.class_section}</p>
                       </div>

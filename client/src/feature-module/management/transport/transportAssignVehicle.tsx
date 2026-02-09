@@ -16,12 +16,13 @@ import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
 import TransportModal from "./transportModal";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
-import { transportAssignData } from "../../../core/data/json/transport_assign";
+import { useTransportAssignments } from "../../../core/hooks/useTransportAssignments";
 
 const TransportAssignVehicle = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = transportAssignData;
+  const { data: apiData, loading, error, fallbackData } = useTransportAssignments();
+  const data = apiData?.length ? apiData : fallbackData;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -327,9 +328,20 @@ const TransportAssignVehicle = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
+              {error && (
+                <div className="alert alert-warning mx-3 mt-3 mb-0" role="alert">
+                  Could not load assignments from server. Showing sample data. Check that the server is running on port 5000.
+                </div>
+              )}
+              {loading && (
+                <div className="text-center py-4">
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Loading assignments...
+                </div>
+              )}
+              {!loading && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
             </div>
           </div>
           {/* /Students List */}

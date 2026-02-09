@@ -15,10 +15,16 @@ import { useParents } from "../../../../core/hooks/useParents";
 
 const ParentGrid = () => {
   const [show, setShow] = useState(false);
-  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedParent, setSelectedParent] = useState<any>(null);
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const { parents: data, loading, error, refetch } = useParents();
+  const { parents, loading, error, refetch } = useParents();
+
+  // useParents already returns transformed parent objects in the exact
+  // shape expected by this grid and the View Details modal.
+  // Re-mapping here would lose data (because raw API fields are no longer present),
+  // so we just pass the hook data through.
+  const data = parents ?? [];
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {

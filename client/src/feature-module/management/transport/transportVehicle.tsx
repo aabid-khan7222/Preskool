@@ -15,13 +15,14 @@ import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
 import TransportModal from "./transportModal";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
-import { transportVehicles } from "../../../core/data/json/transport_vehicle";
 import { Link } from "react-router-dom";
+import { useTransportVehicles } from "../../../core/hooks/useTransportVehicles";
 
 const TransportVehicle = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = transportVehicles;
+  const { data: apiData, loading, error, fallbackData } = useTransportVehicles();
+  const data = apiData?.length ? apiData : fallbackData;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -40,9 +41,9 @@ const TransportVehicle = () => {
     },
     {
       title: "Vehicle No",
-      dataIndex: "phone",
+      dataIndex: "vehicleNo",
       sorter: (a: TableData, b: TableData) =>
-        a.vehicleNo.length - b.vehicleNo.length,
+        (a.vehicleNo || '').length - (b.vehicleNo || '').length,
     },
     {
       title: "Vehicle Model",
@@ -370,9 +371,20 @@ const TransportVehicle = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
+              {error && (
+                <div className="alert alert-warning mx-3 mt-3 mb-0" role="alert">
+                  Could not load vehicles from server. Showing sample data. Check that the server is running on port 5000.
+                </div>
+              )}
+              {loading && (
+                <div className="text-center py-4">
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Loading vehicles...
+                </div>
+              )}
+              {!loading && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
             </div>
           </div>
           {/* /Students List */}

@@ -33,6 +33,7 @@ const StudentList = () => {
   const transformedData = students.map((student: any) => ({
     key: student.admission_number, // Add unique key for checkbox selection
     studentId: student.id, // Add student ID for edit functionality
+    student, // Pass full student for detail page state
     AdmissionNo: student.admission_number,
     RollNo: student.roll_number || '',
     name: `${student.first_name} ${student.last_name}`,
@@ -50,8 +51,12 @@ const StudentList = () => {
     {
       title: "Admission No",
       dataIndex: "AdmissionNo",
-      render: (text: string) => (
-        <Link to={routes.studentDetail} className="link-primary">
+      render: (text: string, record: any) => (
+        <Link
+          to={routes.studentDetail}
+          state={{ studentId: record.studentId, student: record.student }}
+          className="link-primary"
+        >
           {text}
         </Link>
       ),
@@ -68,7 +73,11 @@ const StudentList = () => {
       dataIndex: "name",
       render: (text: string, record: any) => (
         <div className="d-flex align-items-center">
-          <Link to="#" className="avatar avatar-md">
+          <Link
+            to={routes.studentDetail}
+            state={{ studentId: record.studentId, student: record.student }}
+            className="avatar avatar-md"
+          >
             <ImageWithBasePath
               src={record.imgSrc}
               className="img-fluid rounded-circle"
@@ -78,7 +87,12 @@ const StudentList = () => {
           </Link>
           <div className="ms-2">
             <p className="text-dark mb-0">
-              <Link to="#">{text}</Link>
+              <Link
+                to={routes.studentDetail}
+                state={{ studentId: record.studentId, student: record.student }}
+              >
+                {text}
+              </Link>
             </p>
           </div>
         </div>
@@ -178,7 +192,8 @@ const StudentList = () => {
                 <li>
                   <Link
                     className="dropdown-item rounded-1"
-                    to="student-details"
+                    to={routes.studentDetail}
+                    state={{ studentId: record.studentId, student: record.student }}
                   >
                     <i className="ti ti-menu me-2" />
                     View Student

@@ -1,13 +1,97 @@
 
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import ImageWithBasePath from '../../../../core/common/imageWithBasePath'
 import { all_routes } from '../../../router/all_routes'
 import StudentModals from '../studentModals'
 import StudentSidebar from './studentSidebar'
 import StudentBreadcrumb from './studentBreadcrumb'
+import { apiService } from '../../../../core/services/apiService'
+
+interface StudentDetailsLocationState {
+  studentId?: number
+  student?: any
+}
 
 const StudentDetails = () => {
-    const routes = all_routes
+  const routes = all_routes
+  const location = useLocation()
+  const state = location.state as StudentDetailsLocationState | null
+  const studentId = state?.studentId ?? state?.student?.id
+  const [student, setStudent] = useState<any>(state?.student ?? null)
+  const [loading, setLoading] = useState(!!studentId)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!studentId) {
+      if (state?.student) setStudent(state.student)
+      return
+    }
+    setLoading(true)
+    setLoadError(null)
+    apiService
+      .getStudentById(studentId)
+      .then((res: any) => {
+        if (res?.data) setStudent(res.data)
+        else setStudent(null)
+      })
+      .catch((err) => {
+        setLoadError(err?.message ?? 'Failed to load student')
+        setStudent(null)
+      })
+      .finally(() => setLoading(false))
+  }, [studentId])
+
+  if (loading) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <div className="d-flex justify-content-center align-items-center p-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <span className="ms-2">Loading student...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <div className="alert alert-danger m-3" role="alert">
+            <i className="ti ti-alert-circle me-2" />
+            {loadError}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!student) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <div className="alert alert-warning m-3" role="alert">
+            Student information is not available. Please open this page from the Students List or Students Grid.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const fatherName = student.father_name ?? 'N/A'
+  const motherName = student.mother_name ?? 'N/A'
+  const guardianName =
+    student.guardian_first_name || student.guardian_last_name
+      ? [student.guardian_first_name, student.guardian_last_name].filter(Boolean).join(' ') || 'N/A'
+      : null
+  const currentAddress = student.current_address ?? student.address ?? 'N/A'
+  const permanentAddress = student.permanent_address ?? 'N/A'
+  const previousSchool = student.previous_school ?? 'N/A'
+
   return (
     <>
   {/* Page Wrapper */}
@@ -20,7 +104,7 @@ const StudentDetails = () => {
       </div>
       <div className="row">
         {/* Student Information */}
-        <StudentSidebar />
+        <StudentSidebar student={student} />
         {/* /Student Information */}
         <div className="col-xxl-9 col-xl-8">
           <div className="row">
@@ -34,31 +118,51 @@ const StudentDetails = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to={routes.studentTimeTable} className="nav-link">
+                  <Link
+                    to={routes.studentTimeTable}
+                    className="nav-link"
+                    state={{ studentId: student.id, student }}
+                  >
                     <i className="ti ti-table-options me-2" />
                     Time Table
                   </Link>
                 </li>
                 <li>
-                  <Link to={routes.studentLeaves} className="nav-link">
+                  <Link
+                    to={routes.studentLeaves}
+                    className="nav-link"
+                    state={{ studentId: student.id, student }}
+                  >
                     <i className="ti ti-calendar-due me-2" />
                     Leave &amp; Attendance
                   </Link>
                 </li>
                 <li>
-                  <Link to={routes.studentFees} className="nav-link">
+                  <Link
+                    to={routes.studentFees}
+                    className="nav-link"
+                    state={{ studentId: student.id, student }}
+                  >
                     <i className="ti ti-report-money me-2" />
                     Fees
                   </Link>
                 </li>
                 <li>
-                  <Link to={routes.studentResult} className="nav-link">
+                  <Link
+                    to={routes.studentResult}
+                    className="nav-link"
+                    state={{ studentId: student.id, student }}
+                  >
                     <i className="ti ti-bookmark-edit me-2" />
                     Exam &amp; Results
                   </Link>
                 </li>
                 <li>
-                  <Link to={routes.studentLibrary} className="nav-link">
+                  <Link
+                    to={routes.studentLibrary}
+                    className="nav-link"
+                    state={{ studentId: student.id, student }}
+                  >
                     <i className="ti ti-books me-2" />
                     Library
                   </Link>
@@ -71,135 +175,145 @@ const StudentDetails = () => {
                   <h5>Parents Information</h5>
                 </div>
                 <div className="card-body">
-                  <div className="border rounded p-3 pb-0 mb-3">
-                    <div className="row">
-                      <div className="col-sm-6 col-lg-4">
-                        <div className="d-flex align-items-center mb-3">
-                          <span className="avatar avatar-lg flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/parents/parent-13.jpg"
-                              className="img-fluid rounded"
-                              alt="img"
-                            />
-                          </span>
-                          <div className="ms-2 overflow-hidden">
-                            <h6 className="text-truncate">Jerald Vicinius</h6>
-                            <p className="text-primary">Father</p>
+                  {(fatherName !== 'N/A' || student.father_phone || student.father_email) && (
+                    <div className="border rounded p-3 pb-0 mb-3">
+                      <div className="row">
+                        <div className="col-sm-6 col-lg-4">
+                          <div className="d-flex align-items-center mb-3">
+                            <span className="avatar avatar-lg flex-shrink-0">
+                              <ImageWithBasePath
+                                src="assets/img/parents/parent-13.jpg"
+                                className="img-fluid rounded"
+                                alt="img"
+                              />
+                            </span>
+                            <div className="ms-2 overflow-hidden">
+                              <h6 className="text-truncate">{fatherName}</h6>
+                              <p className="text-primary">Father</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-sm-6 col-lg-4">
-                        <div className="mb-3">
-                          <p className="text-dark fw-medium mb-1">Phone</p>
-                          <p>+1 45545 46464</p>
-                        </div>
-                      </div>
-                      <div className="col-sm-6 col-lg-4">
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div className="mb-3 overflow-hidden me-3">
-                            <p className="text-dark fw-medium mb-1">Email</p>
-                            <p className="text-truncate">jera@example.com</p>
+                        <div className="col-sm-6 col-lg-4">
+                          <div className="mb-3">
+                            <p className="text-dark fw-medium mb-1">Phone</p>
+                            <p>{student.father_phone ?? 'N/A'}</p>
                           </div>
-                          <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            aria-label="Print"
-                            data-bs-original-title="Reset Password"
-                            className="btn btn-dark btn-icon btn-sm mb-3"
-                          >
-                            <i className="ti ti-lock-x" />
-                          </Link>
+                        </div>
+                        <div className="col-sm-6 col-lg-4">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div className="mb-3 overflow-hidden me-3">
+                              <p className="text-dark fw-medium mb-1">Email</p>
+                              <p className="text-truncate">{student.father_email ?? 'N/A'}</p>
+                            </div>
+                            <Link
+                              to="#"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Print"
+                              data-bs-original-title="Reset Password"
+                              className="btn btn-dark btn-icon btn-sm mb-3"
+                            >
+                              <i className="ti ti-lock-x" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="border rounded p-3 pb-0 mb-3">
-                    <div className="row">
-                      <div className="col-lg-4 col-sm-6 ">
-                        <div className="d-flex align-items-center mb-3">
-                          <span className="avatar avatar-lg flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/parents/parent-14.jpg"
-                              className="img-fluid rounded"
-                              alt="img"
-                            />
-                          </span>
-                          <div className="ms-2 overflow-hidden">
-                            <h6 className="text-truncate">Roberta Webber</h6>
-                            <p className="text-primary">Mother</p>
+                  )}
+                  {(motherName !== 'N/A' || student.mother_phone || student.mother_email) && (
+                    <div className="border rounded p-3 pb-0 mb-3">
+                      <div className="row">
+                        <div className="col-lg-4 col-sm-6 ">
+                          <div className="d-flex align-items-center mb-3">
+                            <span className="avatar avatar-lg flex-shrink-0">
+                              <ImageWithBasePath
+                                src="assets/img/parents/parent-14.jpg"
+                                className="img-fluid rounded"
+                                alt="img"
+                              />
+                            </span>
+                            <div className="ms-2 overflow-hidden">
+                              <h6 className="text-truncate">{motherName}</h6>
+                              <p className="text-primary">Mother</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-sm-6 ">
-                        <div className="mb-3">
-                          <p className="text-dark fw-medium mb-1">Phone</p>
-                          <p>+1 46499 24357</p>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-sm-6">
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div className="mb-3 overflow-hidden me-3">
-                            <p className="text-dark fw-medium mb-1">Email</p>
-                            <p className="text-truncate">robe@example.com</p>
+                        <div className="col-lg-4 col-sm-6 ">
+                          <div className="mb-3">
+                            <p className="text-dark fw-medium mb-1">Phone</p>
+                            <p>{student.mother_phone ?? 'N/A'}</p>
                           </div>
-                          <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            aria-label="Print"
-                            data-bs-original-title="Reset Password"
-                            className="btn btn-dark btn-icon btn-sm mb-3"
-                          >
-                            <i className="ti ti-lock-x" />
-                          </Link>
+                        </div>
+                        <div className="col-lg-4 col-sm-6">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div className="mb-3 overflow-hidden me-3">
+                              <p className="text-dark fw-medium mb-1">Email</p>
+                              <p className="text-truncate">{student.mother_email ?? 'N/A'}</p>
+                            </div>
+                            <Link
+                              to="#"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Print"
+                              data-bs-original-title="Reset Password"
+                              className="btn btn-dark btn-icon btn-sm mb-3"
+                            >
+                              <i className="ti ti-lock-x" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="border rounded p-3 pb-0">
-                    <div className="row">
-                      <div className="col-lg-4 col-sm-6">
-                        <div className="d-flex align-items-center mb-3">
-                          <span className="avatar avatar-lg flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/parents/parent-13.jpg"
-                              className="img-fluid rounded"
-                              alt="img"
-                            />
-                          </span>
-                          <div className="ms-2 overflow-hidden">
-                            <h6 className="text-truncate">Jerald Vicinius</h6>
-                            <p className="text-primary">Gaurdian (Father)</p>
+                  )}
+                  {guardianName && (
+                    <div className="border rounded p-3 pb-0">
+                      <div className="row">
+                        <div className="col-lg-4 col-sm-6">
+                          <div className="d-flex align-items-center mb-3">
+                            <span className="avatar avatar-lg flex-shrink-0">
+                              <ImageWithBasePath
+                                src="assets/img/parents/parent-13.jpg"
+                                className="img-fluid rounded"
+                                alt="img"
+                              />
+                            </span>
+                            <div className="ms-2 overflow-hidden">
+                              <h6 className="text-truncate">{guardianName}</h6>
+                              <p className="text-primary">Guardian {student.guardian_relation ? `(${student.guardian_relation})` : ''}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-sm-6">
-                        <div className="mb-3">
-                          <p className="text-dark fw-medium mb-1">Phone</p>
-                          <p>+1 45545 46464</p>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-sm-6">
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div className="mb-3 overflow-hidden me-3">
-                            <p className="text-dark fw-medium mb-1">Email</p>
-                            <p className="text-truncate">jera@example.com</p>
+                        <div className="col-lg-4 col-sm-6">
+                          <div className="mb-3">
+                            <p className="text-dark fw-medium mb-1">Phone</p>
+                            <p>{student.guardian_phone ?? 'N/A'}</p>
                           </div>
-                          <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            aria-label="Print"
-                            data-bs-original-title="Reset Password"
-                            className="btn btn-dark btn-icon btn-sm mb-3"
-                          >
-                            <i className="ti ti-lock-x" />
-                          </Link>
+                        </div>
+                        <div className="col-lg-4 col-sm-6">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div className="mb-3 overflow-hidden me-3">
+                              <p className="text-dark fw-medium mb-1">Email</p>
+                              <p className="text-truncate">{student.guardian_email ?? 'N/A'}</p>
+                            </div>
+                            <Link
+                              to="#"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              aria-label="Print"
+                              data-bs-original-title="Reset Password"
+                              className="btn btn-dark btn-icon btn-sm mb-3"
+                            >
+                              <i className="ti ti-lock-x" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                  {fatherName === 'N/A' && !student.father_phone && !student.father_email &&
+                   motherName === 'N/A' && !student.mother_phone && !student.mother_email && !guardianName && (
+                    <p className="text-muted mb-0">No parent or guardian information available.</p>
+                  )}
                 </div>
               </div>
               {/* /Parents Information */}
@@ -260,7 +374,7 @@ const StudentDetails = () => {
                       <p className="text-dark fw-medium mb-1">
                         Current Address
                       </p>
-                      <p>3495 Red Hawk Road, Buffalo Lake, MN 55314</p>
+                      <p>{currentAddress}</p>
                     </div>
                   </div>
                   <div className="d-flex align-items-center">
@@ -271,7 +385,7 @@ const StudentDetails = () => {
                       <p className="text-dark fw-medium mb-1">
                         Permanent Address
                       </p>
-                      <p>3495 Red Hawk Road, Buffalo Lake, MN 55314</p>
+                      <p>{permanentAddress}</p>
                     </div>
                   </div>
                 </div>
@@ -291,7 +405,7 @@ const StudentDetails = () => {
                         <p className="text-dark fw-medium mb-1">
                           Previous School Name
                         </p>
-                        <p>Oxford Matriculation, USA</p>
+                        <p>{previousSchool}</p>
                       </div>
                     </div>
                     <div className="col-md-6">
@@ -299,7 +413,7 @@ const StudentDetails = () => {
                         <p className="text-dark fw-medium mb-1">
                           School Address
                         </p>
-                        <p>1852 Barnes Avenue, Cincinnati, OH 45202</p>
+                        <p>N/A</p>
                       </div>
                     </div>
                   </div>
@@ -318,19 +432,19 @@ const StudentDetails = () => {
                     <div className="col-md-4">
                       <div className="mb-3">
                         <p className="text-dark fw-medium mb-1">Bank Name</p>
-                        <p>Bank of America</p>
+                        <p>{(student.bank_name ?? student.bankName) ?? 'N/A'}</p>
                       </div>
                     </div>
                     <div className="col-md-4">
                       <div className="mb-3">
                         <p className="text-dark fw-medium mb-1">Branch</p>
-                        <p>Cincinnati</p>
+                        <p>{(student.branch ?? student.branchName) ?? 'N/A'}</p>
                       </div>
                     </div>
                     <div className="col-md-4">
                       <div className="mb-3">
                         <p className="text-dark fw-medium mb-1">IFSC</p>
-                        <p>BOA83209832</p>
+                        <p>{(student.ifsc ?? student.ifscCode) ?? 'N/A'}</p>
                       </div>
                     </div>
                   </div>
@@ -351,13 +465,17 @@ const StudentDetails = () => {
                         <p className="text-dark fw-medium mb-1">
                           Known Allergies
                         </p>
-                        <span className="badge bg-light text-dark">Rashes</span>
+                        {(student.known_allergies ?? student.knownAllergies) ? (
+                          <span className="badge bg-light text-dark">{student.known_allergies ?? student.knownAllergies}</span>
+                        ) : (
+                          <p className="mb-0">N/A</p>
+                        )}
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
                         <p className="text-dark fw-medium mb-1">Medications</p>
-                        <p>-</p>
+                        <p>{(student.medications ?? student.medicationsList) ?? 'N/A'}</p>
                       </div>
                     </div>
                   </div>

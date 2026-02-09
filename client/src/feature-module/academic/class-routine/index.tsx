@@ -1,6 +1,6 @@
-import{ useRef } from "react";
-import { classRoutine } from "../../../core/data/json/class-routine";
+import { useRef } from "react";
 import Table from "../../../core/common/dataTable/index";
+import { useClassSchedules } from "../../../core/hooks/useClassSchedules";
 import PredefinedDateRanges from "../../../core/common/datePicker";
 import CommonSelect from "../../../core/common/commonSelect";
 import {
@@ -18,8 +18,10 @@ import TooltipOption from "../../../core/common/tooltipOption";
 
 const ClassRoutine = () => {
   const routes = all_routes;
+  const { data: apiData, loading, error, fallbackData } = useClassSchedules();
+  // Real data only: use API result when loaded; use fallback only while loading so layout doesn't jump
+  const data = loading ? fallbackData : (apiData ?? []);
 
-  const data = classRoutine;
   const getModalContainer = () => {
     const modalElement = document.getElementById("modal-datepicker");
     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
@@ -309,9 +311,20 @@ const ClassRoutine = () => {
                 </div>
               </div>
               <div className="card-body p-0 py-3">
-                {/* Guardians List */}
-                <Table columns={columns} dataSource={data} Selection={true} />
-                {/* /Guardians List */}
+                {error && (
+                  <div className="alert alert-warning mx-3 mt-3 mb-0" role="alert">
+                    Could not load class schedules from server. Showing sample data.
+                  </div>
+                )}
+                {loading && (
+                  <div className="text-center py-4">
+                    <span className="spinner-border spinner-border-sm me-2" />
+                    Loading class routine...
+                  </div>
+                )}
+                {!loading && (
+                  <Table columns={columns} dataSource={data} Selection={true} />
+                )}
               </div>
             </div>
             {/* /Guardians List */}

@@ -19,10 +19,17 @@ import { useParents } from "../../../../core/hooks/useParents";
 
 const ParentList = () => {
   const [show, setShow] = useState(false);
-  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedParent, setSelectedParent] = useState<any>(null);
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const { parents: data, loading, error, refetch } = useParents();
+  const { parents, loading, error, refetch } = useParents();
+
+  // useParents already returns parent records transformed into the
+  // exact shape expected by this table and the View Details modal.
+  // Re-transforming here against raw API field names causes the "N/A"
+  // issue, so we simply use the hook result as-is.
+  const data = parents ?? [];
+
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -46,7 +53,7 @@ const ParentList = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
+      sorter: (a: TableData, b: TableData) => (Number(a.id) || 0) - (Number(b.id) || 0),
     },
     {
       title: "Parent Name",
@@ -111,7 +118,7 @@ const ParentList = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_text: string, record: any) => (
         <>
           <div className="d-flex align-items-center">
             <div className="dropdown">

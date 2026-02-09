@@ -10,12 +10,13 @@ import type { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import TooltipOption from "../../../core/common/tooltipOption";
 import HostelModal from "./hostelModal";
-import { hostelroomType } from "../../../core/data/json/hostelRoomType";
+import { useRoomTypes } from "../../../core/hooks/useRoomTypes";
 
 const HostelType = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = hostelroomType;
+  const { roomTypes, loading, error, refetch } = useRoomTypes();
+  const data = roomTypes;
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -219,9 +220,37 @@ const HostelType = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
+              {/* Loading State */}
+              {loading && (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading room types data...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="text-center p-4">
+                  <div className="alert alert-danger" role="alert">
+                    <i className="ti ti-alert-circle me-2"></i>
+                    {error}
+                    <button 
+                      className="btn btn-sm btn-outline-danger ms-3" 
+                      onClick={refetch}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Room Types List */}
+              {!loading && !error && (
+                <Table dataSource={data} columns={columns} Selection={true} />
+              )}
+              {/* /Room Types List */}
             </div>
           </div>
           {/* /Students List */}

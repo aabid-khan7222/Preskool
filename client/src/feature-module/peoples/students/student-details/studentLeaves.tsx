@@ -1,5 +1,6 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { all_routes } from "../../../router/all_routes";
 import StudentModals from "../studentModals";
 import StudentSidebar from "./studentSidebar";
@@ -8,6 +9,12 @@ import Table from "../../../../core/common/dataTable/index";
 import type { TableData } from "../../../../core/data/interface";
 import { leaveData } from "../../../../core/data/json/leaveData";
 import { Attendance } from "../../../../core/data/json/attendance";
+import { apiService } from "../../../../core/services/apiService";
+
+interface StudentDetailsLocationState {
+  studentId?: number;
+  student?: any;
+}
 
 // Custom styles for table
 const tableStyles = `
@@ -52,8 +59,46 @@ const tableStyles = `
 
 const StudentLeaves = () => {
   const routes = all_routes;
+  const location = useLocation();
+  const state = location.state as StudentDetailsLocationState | null;
+  const studentId = state?.studentId ?? state?.student?.id;
+  const [student, setStudent] = useState<any>(state?.student ?? null);
+  const [loading, setLoading] = useState(!!studentId);
   const data = leaveData;
   const data2 = Attendance;
+
+  useEffect(() => {
+    if (!studentId) {
+      if (state?.student) setStudent(state.student);
+      return;
+    }
+    setLoading(true);
+    apiService
+      .getStudentById(studentId)
+      .then((res: any) => {
+        if (res?.data) setStudent(res.data);
+        else setStudent(null);
+      })
+      .catch(() => {
+        setStudent(null);
+      })
+      .finally(() => setLoading(false));
+  }, [studentId, state?.student]);
+
+  if (loading) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <div className="d-flex justify-content-center align-items-center p-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <span className="ms-2">Loading student...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   const columns = [
     {
@@ -361,7 +406,7 @@ const StudentLeaves = () => {
           </div>
           <div className="row">
             {/* Student Information */}
-            <StudentSidebar />
+            <StudentSidebar student={student} />
             {/* /Student Information */}
             <div className="col-xxl-9 col-xl-8">
               <div className="row">
@@ -369,13 +414,21 @@ const StudentLeaves = () => {
                   {/* List */}
                   <ul className="nav nav-tabs nav-tabs-bottom mb-4">
                     <li>
-                      <Link to={routes.studentDetail} className="nav-link">
+                      <Link
+                        to={routes.studentDetail}
+                        className="nav-link"
+                        state={student ? { studentId: student.id, student } : undefined}
+                      >
                         <i className="ti ti-school me-2" />
                         Student Details
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.studentTimeTable} className="nav-link">
+                      <Link
+                        to={routes.studentTimeTable}
+                        className="nav-link"
+                        state={student ? { studentId: student.id, student } : undefined}
+                      >
                         <i className="ti ti-table-options me-2" />
                         Time Table
                       </Link>
@@ -390,19 +443,31 @@ const StudentLeaves = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.studentFees} className="nav-link">
+                      <Link
+                        to={routes.studentFees}
+                        className="nav-link"
+                        state={student ? { studentId: student.id, student } : undefined}
+                      >
                         <i className="ti ti-report-money me-2" />
                         Fees
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.studentResult} className="nav-link">
+                      <Link
+                        to={routes.studentResult}
+                        className="nav-link"
+                        state={student ? { studentId: student.id, student } : undefined}
+                      >
                         <i className="ti ti-bookmark-edit me-2" />
                         Exam &amp; Results
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.studentLibrary} className="nav-link">
+                      <Link
+                        to={routes.studentLibrary}
+                        className="nav-link"
+                        state={student ? { studentId: student.id, student } : undefined}
+                      >
                         <i className="ti ti-books me-2" />
                         Library
                       </Link>

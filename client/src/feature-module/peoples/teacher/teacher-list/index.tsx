@@ -13,7 +13,7 @@ import Table from "../../../../core/common/dataTable/index";
 import type { TableData } from "../../../../core/data/interface";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import TooltipOption from "../../../../core/common/tooltipOption";
-import { useTeachers } from "../../../../core/hooks/useTeachers";
+import { useTeachers } from "../../../../core/hooks/useTeachers.js";
 
 const TeacherList = () => {
   const routes = all_routes;
@@ -23,6 +23,8 @@ const TeacherList = () => {
   // Transform API data to match existing table structure
   const transformedData = teachers.map((teacher: any, index: number) => ({
     key: (index + 1).toString(),
+    teacherId: teacher.id,
+    teacher,
     img: teacher.photo_url || `assets/img/teachers/teacher-0${(index % 8) + 1}.jpg`, // Fallback to default images
     id: teacher.employee_code || `T${teacher.id}`,
     name: `${teacher.first_name} ${teacher.last_name}`,
@@ -46,8 +48,12 @@ const TeacherList = () => {
     {
       title: "ID",
       dataIndex: "id",
-      render: (text: string) => (
-        <Link to={routes.teacherDetails} className="link-primary">
+      render: (text: string, record: any) => (
+        <Link
+          to={routes.teacherDetails}
+          state={{ teacherId: record.teacherId, teacher: record.teacher }}
+          className="link-primary"
+        >
           {text}
         </Link>
       ),
@@ -58,7 +64,11 @@ const TeacherList = () => {
       dataIndex: "name",
       render: (text: string, record: any) => (
         <div className="d-flex align-items-center">
-          <Link to="#" className="avatar avatar-md">
+          <Link
+            to={routes.teacherDetails}
+            state={{ teacherId: record.teacherId, teacher: record.teacher }}
+            className="avatar avatar-md"
+          >
             <ImageWithBasePath
               src={record.img}
               className="img-fluid rounded-circle"
@@ -67,7 +77,12 @@ const TeacherList = () => {
           </Link>
           <div className="ms-2">
             <p className="text-dark mb-0">
-              <Link to="#">{text}</Link>
+              <Link
+                to={routes.teacherDetails}
+                state={{ teacherId: record.teacherId, teacher: record.teacher }}
+              >
+                {text}
+              </Link>
             </p>
           </div>
         </div>
@@ -126,7 +141,7 @@ const TeacherList = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_: any, record: any) => (
         <>
           <div className="d-flex align-items-center">
             <div className="dropdown">
@@ -143,6 +158,7 @@ const TeacherList = () => {
                   <Link
                     className="dropdown-item rounded-1"
                     to={routes.teacherDetails}
+                    state={{ teacherId: record.teacherId, teacher: record.teacher }}
                   >
                     <i className="ti ti-menu me-2" />
                     View Teacher

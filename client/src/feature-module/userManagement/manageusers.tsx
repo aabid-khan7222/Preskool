@@ -1,17 +1,18 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import Table from "../../core/common/dataTable/index";
-import { manageusersData } from "../../core/data/json/manageuser";
 import type { TableData } from "../../core/data/interface";
 import PredefinedDateRanges from "../../core/common/datePicker";
 import CommonSelect from "../../core/common/commonSelect";
 import { Reason } from "../../core/common/selectoption/selectoption";
 import { all_routes } from "../router/all_routes";
 import TooltipOption from "../../core/common/tooltipOption";
+import { useUsers } from "../../core/hooks/useUsers";
 
 const Manageusers = () => {
   const routes = all_routes;
-  const data = manageusersData;
+  const { users, loading, error, refetch } = useUsers();
+  const data = users;
   const columns = [
     {
       title: "ID",
@@ -240,7 +241,37 @@ const Manageusers = () => {
               </div>
               {/* User List */}
               <div className="card-body p-0 py-3">
-                <Table columns={columns} dataSource={data} Selection={true} />
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center p-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading users data...</p>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {error && (
+                  <div className="text-center p-4">
+                    <div className="alert alert-danger" role="alert">
+                      <i className="ti ti-alert-circle me-2"></i>
+                      {error}
+                      <button
+                        className="btn btn-sm btn-outline-danger ms-3"
+                        onClick={refetch}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Users List */}
+                {!loading && !error && (
+                  <Table columns={columns} dataSource={data} Selection={true} />
+                )}
+                {/* /Users List */}
               </div>
               {/* /User List */}
             </div>

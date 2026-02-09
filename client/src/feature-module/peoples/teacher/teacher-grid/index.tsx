@@ -7,7 +7,7 @@ import { allClass, names } from '../../../../core/common/selectoption/selectopti
 import TeacherModal from '../teacherModal'
 import CommonSelect from '../../../../core/common/commonSelect'
 import TooltipOption from '../../../../core/common/tooltipOption'
-import { useTeachers } from '../../../../core/hooks/useTeachers'
+import { useTeachers } from '../../../../core/hooks/useTeachers.js'
 
 const TeacherGrid = () => {
     const routes = all_routes
@@ -209,7 +209,11 @@ const TeacherGrid = () => {
           <div key={teacher.id} className="col-xxl-3 col-xl-4 col-md-6 d-flex">
             <div className="card flex-fill">
               <div className="card-header d-flex align-items-center justify-content-between">
-                <Link to={routes.teacherDetails} className="link-primary">
+              <Link
+                to={routes.teacherDetails}
+                state={{ teacherId: teacher.id, teacher }}
+                className="link-primary"
+              >
                   {teacher.employee_code || `T${teacher.id}`}
                 </Link>
                 <div className="d-flex align-items-center">
@@ -256,6 +260,7 @@ const TeacherGrid = () => {
                   <div className="d-flex align-items-center">
                     <Link
                       to={routes.teacherDetails}
+                      state={{ teacherId: teacher.id, teacher }}
                       className="avatar avatar-lg flex-shrink-0"
                     >
                       <ImageWithBasePath
@@ -266,7 +271,10 @@ const TeacherGrid = () => {
                     </Link>
                     <div className="ms-2">
                       <h6 className="text-dark text-truncate mb-0">
-                        <Link to={routes.teacherDetails}>{`${teacher.first_name} ${teacher.last_name}`}</Link>
+                        <Link
+                          to={routes.teacherDetails}
+                          state={{ teacherId: teacher.id, teacher }}
+                        >{`${teacher.first_name} ${teacher.last_name}`}</Link>
                       </h6>
                       <p>{teacher.class_name || 'N/A'}</p>
                     </div>
@@ -285,7 +293,11 @@ const TeacherGrid = () => {
               </div>
               <div className="card-footer d-flex align-items-center justify-content-between">
                 <span className="badge badge-soft-danger">{teacher.subject_name || 'N/A'}</span>
-                <Link to={routes.teacherDetails} className="btn btn-light btn-sm">
+                <Link
+                  to={routes.teacherDetails}
+                  state={{ teacherId: teacher.id, teacher }}
+                  className="btn btn-light btn-sm"
+                >
                   View Details
                 </Link>
               </div>

@@ -76,6 +76,15 @@ class ApiService {
     return this.makeRequest(`/sections/class/${classId}`);
   }
 
+  // Class schedules (timetable: class + subject + time_slot)
+  async getClassSchedules() {
+    return this.makeRequest('/class-schedules');
+  }
+
+  async getClassScheduleById(id) {
+    return this.makeRequest(`/class-schedules/${id}`);
+  }
+
   // Students
   async getStudents() {
     return this.makeRequest('/students');
@@ -199,6 +208,124 @@ class ApiService {
 
   async getTeachersByClass(classId) {
     return this.makeRequest(`/teachers/class/${classId}`);
+  }
+
+  // Staff
+  async getStaff() {
+    return this.makeRequest('/staff');
+  }
+
+  async getStaffById(id) {
+    return this.makeRequest(`/staff/${id}`);
+  }
+
+  // Departments
+  async getDepartments() {
+    return this.makeRequest('/departments');
+  }
+
+  async getDepartmentById(id) {
+    return this.makeRequest(`/departments/${id}`);
+  }
+
+  // Designations
+  async getDesignations() {
+    return this.makeRequest('/designations');
+  }
+
+  async getDesignationById(id) {
+    return this.makeRequest(`/designations/${id}`);
+  }
+
+  // Users
+  async getUsers() {
+    return this.makeRequest('/users');
+  }
+
+  async getUserById(id) {
+    return this.makeRequest(`/users/${id}`);
+  }
+
+  // User Roles
+  async getUserRoles() {
+    return this.makeRequest('/user-roles');
+  }
+
+  async getUserRoleById(id) {
+    return this.makeRequest(`/user-roles/${id}`);
+  }
+
+  // Transport
+  async getTransportRoutes() {
+    return this.makeRequest('/transport/routes');
+  }
+
+  async getTransportRouteById(id) {
+    return this.makeRequest(`/transport/routes/${id}`);
+  }
+
+  async getTransportPickupPoints() {
+    return this.makeRequest('/transport/pickup-points');
+  }
+
+  async getTransportPickupPointById(id) {
+    return this.makeRequest(`/transport/pickup-points/${id}`);
+  }
+
+  async getTransportVehicles() {
+    return this.makeRequest('/transport/vehicles');
+  }
+
+  async getTransportVehicleById(id) {
+    return this.makeRequest(`/transport/vehicles/${id}`);
+  }
+
+  async getTransportDrivers() {
+    return this.makeRequest('/transport/drivers');
+  }
+
+  async getTransportDriverById(id) {
+    return this.makeRequest(`/transport/drivers/${id}`);
+  }
+
+  // Subjects
+  async getSubjects() {
+    return this.makeRequest('/subjects');
+  }
+
+  async getSubjectById(id) {
+    return this.makeRequest(`/subjects/${id}`);
+  }
+
+  async getSubjectsByClass(classId) {
+    return this.makeRequest(`/subjects/class/${classId}`);
+  }
+
+  // Hostels
+  async getHostels() {
+    return this.makeRequest('/hostels');
+  }
+
+  async getHostelById(id) {
+    return this.makeRequest(`/hostels/${id}`);
+  }
+
+  // Hostel Rooms
+  async getHostelRooms() {
+    return this.makeRequest('/hostel-rooms');
+  }
+
+  async getHostelRoomById(id) {
+    return this.makeRequest(`/hostel-rooms/${id}`);
+  }
+
+  // Room Types
+  async getRoomTypes() {
+    return this.makeRequest('/room-types');
+  }
+
+  async getRoomTypeById(id) {
+    return this.makeRequest(`/room-types/${id}`);
   }
 
   // Health check

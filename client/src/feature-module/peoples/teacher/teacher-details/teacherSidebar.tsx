@@ -2,7 +2,48 @@
 import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 
-const TeacherSidebar = () => {
+interface TeacherSidebarProps {
+  teacher?: {
+    id?: number;
+    employee_code?: string;
+    first_name?: string;
+    last_name?: string;
+    photo_url?: string | null;
+    joining_date?: string | null;
+    class_name?: string | null;
+    subject_name?: string | null;
+    gender?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    blood_group?: string | null;
+    pan_number?: string | null;
+    id_number?: string | null;
+    languages_known?: string | null;
+  } | null;
+}
+
+const TeacherSidebar = ({ teacher }: TeacherSidebarProps) => {
+  const displayName = teacher
+    ? [teacher.first_name, teacher.last_name].filter(Boolean).join(" ") || "N/A"
+    : "N/A";
+  const code = teacher?.employee_code ?? (teacher?.id != null ? `T${teacher.id}` : "N/A");
+  const joinedText = teacher?.joining_date
+    ? new Date(teacher.joining_date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "2-digit",
+      })
+    : "N/A";
+  const photoSrc = teacher?.photo_url || "assets/img/teachers/teacher-01.jpg";
+  const classSection = teacher?.class_name ?? "N/A";
+  const subject = teacher?.subject_name ?? "N/A";
+  const gender = teacher?.gender ?? "N/A";
+  const bloodGroup = teacher?.blood_group ?? "N/A";
+  const phone = teacher?.phone ?? "N/A";
+  const email = teacher?.email ?? "N/A";
+  const panOrId = teacher?.pan_number || teacher?.id_number || "N/A";
+  const languages = teacher?.languages_known ?? "N/A";
+
   return (
     <div className="col-xxl-3 col-xl-4 theiaStickySidebar">
       <div className="stickytopbar pb-4">
@@ -11,15 +52,15 @@ const TeacherSidebar = () => {
             <div className="d-flex align-items-center flex-wrap row-gap-3">
               <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
                 <ImageWithBasePath
-                  src="assets/img/teachers/teacher-01.jpg"
+                  src={photoSrc}
                   className="img-fluid"
                   alt="img"
                 />
               </div>
               <div>
-                <h5 className="mb-1 mb-1 text-truncate">Teresa</h5>
-                <p className="text-primary mb-1">T849126</p>
-                <p>Joined : 25 May 24</p>
+                <h5 className="mb-1 mb-1 text-truncate">{displayName}</h5>
+                <p className="text-primary mb-1">{code}</p>
+                <p>Joined : {joinedText}</p>
               </div>
             </div>
           </div>
@@ -29,23 +70,20 @@ const TeacherSidebar = () => {
               <dt className="col-6 fw-medium text-dark mb-3">
                 Class &amp; Section
               </dt>
-              <dd className="col-6  mb-3">III, A</dd>
+              <dd className="col-6  mb-3">{classSection}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Subject</dt>
-              <dd className="col-6  mb-3">Physics</dd>
+              <dd className="col-6  mb-3">{subject}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Gender</dt>
-              <dd className="col-6  mb-3">Female</dd>
+              <dd className="col-6  mb-3">{gender}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Blood Group</dt>
-              <dd className="col-6  mb-3">O +ve</dd>
-              <dt className="col-6 fw-medium text-dark mb-3">House</dt>
-              <dd className="col-6  mb-3">Red</dd>
+              <dd className="col-6  mb-3">{bloodGroup}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Language Known</dt>
-              <dd className="col-6  mb-3">English</dd>
+              <dd className="col-6  mb-3">{languages}</dd>
               <dt className="col-6 fw-medium text-dark mb-0">Language</dt>
               <dd className="col-6  mb-0">
                 <span className="badge badge-light text-dark me-2">
-                  English
+                  {languages || "N/A"}
                 </span>
-                <span className="badge badge-light text-dark">Spanish</span>
               </dd>
             </dl>
           </div>
@@ -59,7 +97,7 @@ const TeacherSidebar = () => {
               </span>
               <div>
                 <span className=" text-dark fw-medium mb-1">Phone Number</span>
-                <p>+1 46548 84498</p>
+                <p>{phone}</p>
               </div>
             </div>
             <div className="d-flex align-items-center">
@@ -68,7 +106,7 @@ const TeacherSidebar = () => {
               </span>
               <div>
                 <span className="text-dark fw-medium mb-1">Email Address</span>
-                <p>jan@example.com</p>
+                <p>{email}</p>
               </div>
             </div>
           </div>
@@ -82,7 +120,7 @@ const TeacherSidebar = () => {
                   <i className="ti ti-id" />
                 </span>
                 <div>
-                  <p className="text-dark">343445954908</p>
+                  <p className="text-dark">{panOrId}</p>
                 </div>
               </div>
               <Link to="#" className="btn btn-primary btn-icon btn-sm mb-3">
