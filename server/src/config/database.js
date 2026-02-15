@@ -1,28 +1,34 @@
 const { Pool } = require('pg');
-
 require('dotenv').config();
 
-console.log('ENV CHECK:');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log("ENV CHECK:");
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
 
+// Use DATABASE_URL in production (Render)
+// Fallback to local config only if DATABASE_URL not present
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: {
         rejectUnauthorized: false,
       },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
     })
   : new Pool({
-      host: 'localhost',
-      port: 5432,
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
       database: process.env.DB_NAME || 'schooldb',
+      user: process.env.DB_USER || 'schooluser',
+      password: process.env.DB_PASSWORD || '',
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
     });
 
 pool.on('connect', () => {
-  console.log('Connected to PostgreSQL');
+  console.log('✅ Connected to PostgreSQL');
 });
 
 pool.on('error', (err) => {
@@ -33,15 +39,22 @@ pool.on('error', (err) => {
 const testConnection = async () => {
   try {
     await pool.query('SELECT NOW()');
-    console.log('Database connected successfully');
+    console.log('✅ Database connection successful!');
+    return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    console.error('❌ Database connection failed:', error);
     process.exit(1);
   }
 };
 
-const getClient = async () => pool.connect();
-const query = (text, params) => pool.query(text, params);
+const getClient = async () => {
+  return await pool.connect();
+};
+
+const query = async (text, params) => {
+  return await pool.query(text, params);
+};
+
 const executeTransaction = async (callback) => {
   const client = await pool.connect();
   try {
@@ -56,7 +69,10 @@ const executeTransaction = async (callback) => {
     client.release();
   }
 };
-const closePool = () => pool.end();
+
+const closePool = async () => {
+  await pool.end();
+};
 
 module.exports = {
   pool,
