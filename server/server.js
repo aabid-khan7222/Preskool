@@ -124,30 +124,26 @@ const startServer = async () => {
     // Validate required env vars in production
     const nodeEnv = process.env.NODE_ENV || 'development';
     if (nodeEnv === 'production') {
-      const required = ['DB_PASSWORD', 'JWT_SECRET'];
-      const missing = required.filter((key) => !process.env[key]);
-      if (missing.length > 0) {
-        console.error('❌ Missing required env vars in production:', missing.join(', '));
-        console.error('   Set them in .env file. See .env.example for reference.');
+      const hasDb = !!process.env.DATABASE_URL || !!process.env.DB_PASSWORD;
+      if (!hasDb) {
+        console.error('❌ In production set DATABASE_URL (e.g. Render) or DB_PASSWORD for database.');
+        process.exit(1);
+      }
+      if (!process.env.JWT_SECRET) {
+        console.error('❌ Missing JWT_SECRET in production.');
         process.exit(1);
       }
     }
 
-    // Test database connection
+    // Test database connection (exits with 1 on failure)
     console.log('🔍 Testing database connection...');
-    const dbConnected = await testConnection();
-    
-    if (!dbConnected) {
-      console.error('❌ Failed to connect to database. Server will not start.');
-      process.exit(1);
-    }
+    await testConnection();
 
-    // Start the server
-    app.listen(serverConfig.port, () => {
+    const PORT = serverConfig.port;
+    app.listen(PORT, () => {
       console.log('🚀 Server is running!');
-      console.log(`📍 Server URL: http://localhost:${serverConfig.port}`);
+      console.log(`📍 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${serverConfig.nodeEnv}`);
-      console.log(`📊 Database: Connected to ${process.env.DB_NAME || 'schooldb'}`);
       console.log('📋 Available endpoints:');
       console.log(`   GET  http://localhost:${serverConfig.port}/`);
       console.log(`   GET  http://localhost:${serverConfig.port}/api/health`);
