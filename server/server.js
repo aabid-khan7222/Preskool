@@ -1,9 +1,11 @@
+// Load env first (local .env; on Render, env is injected by platform)
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
 
 // Import configurations
 const serverConfig = require('./src/config/server');
@@ -121,16 +123,15 @@ app.use((err, req, res, next) => {
 // Start server
 const startServer = async () => {
   try {
-    // Validate required env vars in production
+    // Production: require DATABASE_URL (no localhost fallback)
     const nodeEnv = process.env.NODE_ENV || 'development';
     if (nodeEnv === 'production') {
-      const hasDb = !!process.env.DATABASE_URL || !!process.env.DB_PASSWORD;
-      if (!hasDb) {
-        console.error('❌ In production set DATABASE_URL (e.g. Render) or DB_PASSWORD for database.');
+      if (!process.env.DATABASE_URL) {
+        console.error('❌ Production requires DATABASE_URL. Add it in Render → Environment.');
         process.exit(1);
       }
       if (!process.env.JWT_SECRET) {
-        console.error('❌ Missing JWT_SECRET in production.');
+        console.error('❌ Production requires JWT_SECRET. Add it in Render → Environment.');
         process.exit(1);
       }
     }
@@ -139,7 +140,7 @@ const startServer = async () => {
     console.log('🔍 Testing database connection...');
     await testConnection();
 
-    const PORT = serverConfig.port;
+    const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log('🚀 Server is running!');
       console.log(`📍 Server running on port ${PORT}`);

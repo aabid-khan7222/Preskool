@@ -1,29 +1,50 @@
 const { Pool } = require('pg');
+
+// Load .env for local development only (Render injects env at runtime)
 require('dotenv').config();
 
-// Production (e.g. Render): use DATABASE_URL with SSL. Local: use DB_* env vars.
-const isProduction = !!process.env.DATABASE_URL;
+// --- Debug: confirm which config will be used (safe, no secrets) ---
+console.log('ENV CHECK:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
-const pool = new Pool(
-  isProduction
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
-      }
-    : {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432', 10),
-        database: process.env.DB_NAME || 'schooldb',
-        user: process.env.DB_USER || 'schooluser',
-        password: process.env.DB_PASSWORD,
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-      }
-);
+const useProductionDb = !!process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// In production, never use localhost — require DATABASE_URL
+if (isProduction && !useProductionDb) {
+  console.error('❌ Production requires DATABASE_URL. Set it in Render (or your host) environment.');
+  process.exit(1);
+}
+
+let poolConfig;
+
+if (useProductionDb) {
+  // Production (e.g. Render): use only DATABASE_URL. No localhost.
+  console.log('DB config: Using DATABASE_URL (production)');
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  };
+} else {
+  // Local development: use DB_* env vars from .env
+  console.log('DB config: Using local DB_* env (development)');
+  poolConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    database: process.env.DB_NAME || 'schooldb',
+    user: process.env.DB_USER || 'schooluser',
+    password: process.env.DB_PASSWORD,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  };
+}
+
+const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
@@ -36,8 +57,8 @@ const testConnection = async () => {
     await client.query('SELECT NOW()');
     client.release();
     console.log('✅ Database connected successfully');
-    if (!isProduction) {
-      console.log(`📊 Connected to: ${process.env.DB_NAME || 'schooldb'} on ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}`);
+    if (!useProductionDb) {
+      console.log(`📊 Connected to: ${poolConfig.database} on ${poolConfig.host}:${poolConfig.port}`);
     }
     return true;
   } catch (error) {
